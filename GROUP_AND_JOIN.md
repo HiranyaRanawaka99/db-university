@@ -22,7 +22,7 @@
 
 3. Calcolare la media dei voti di ogni appello d'esame
 
-    SELECT AVG(`vote`) AS `vote_average`, `exam_id`
+    SELECT AVG(`vote`) AS `average_vote`, `exam_id`
 
     FROM `exam_student`
 
@@ -64,16 +64,16 @@
 
     ON `departments`.`id` = `degrees`.`department_id`
 
-    WHERE `degrees`.`level`= 'magistrale'
+    WHERE `departments`.`name`= 'Dipartimento di Neuroscienze'
 
-    AND `departments`.`name`= 'Dipartimento di Neuroscienze'
+    AND `degrees`.`level`= 'magistrale';
 
 
 3. Selezionare tutti i corsi in cui insegna Fulvio Amato (id=44)
 
     SELECT `courses`.`degree_id`, `courses`.`description`, `courses`.`period`, `courses`.`year`, `courses`.`cfu`, `teachers`.`name`, `teachers`.`surname`
 
-    FROM `courses`
+    FROM `courses`. *
 
     INNER JOIN `course_teacher`
 
@@ -88,7 +88,7 @@
 
 4. Selezionare tutti gli studenti con i dati relativi al corso di laurea a cui sono iscritti e il relativo dipartimento, in ordine alfabetico per cognome e nome
 
-    SELECT `students`.`surname` AS `student_surname`, `students`.`name` AS `student_name`, `degrees`.`name` AS `degree_name`, `departments`.`name` AS `department_name`
+    SELECT `students`.`name` AS `student_name`, `students`.`surname` AS `student_surname`, `degrees`.`name` AS `degree_name`, `departments`.`name` AS `department_name`
 
     FROM `students`
 
@@ -100,12 +100,12 @@
 
     ON `degrees`.`department_id` = `departments`.`id`
 
-    ORDER BY `student_surname` ASC
+    ORDER BY `student_surname`. `student_name`;
+s
 
+5. Selezionare tutti i corsi di laurea con i relativi  corsi e insegnanti
 
-5. Selezionare tutti i corsi di laurea con i relativi corsi e insegnanti
-
-    SELECT `degrees`.`name`AS `degree_name`, `degrees`.`level`, `courses`.`name` AS `course_name`, `courses`.`description`, `courses`.`period`, `courses`.`year`, `teachers`.`name` AS `teacher_name`, `teachers`.`surname`
+    SELECT `degrees`.`name`, `degrees`.`level`, `courses`.`name` `courses`.`description`, `courses`.`period`, `courses`.`year`, `teachers`.`name` , `teachers`.`surname`
     AS `teacher_surname`
 
     FROM `degrees`
@@ -125,13 +125,14 @@
 
 6. Selezionare tutti i docenti che insegnano nel Dipartimento di Matematica (54)
 
-    SELECT DISTINCT `teachers`.`name`, `teachers`.`surname`, `departments`.`name` AS `department_name`
+    SELECT DISTINCT `teachers`.`name`, `teachers`.`surname`, `departments`.`name`
 
     FROM `teachers`
 
     INNER JOIN `course_teacher`
 
     ON `teachers`.`id`=`course_teacher`.`teacher_id`
+
     INNER JOIN `courses`
 
     ON `course_teacher`.`course_id` = `courses`.`id`
@@ -144,7 +145,35 @@
 
     ON `degrees`.`department_id`= `departments`.`id`
 
-    WHERE `departments`.`name` = 'Dipartimento di Matematica'
+    WHERE `departments`.`name` = 'Dipartimento di Matematica';
 
 
-7.Selezionare per ogni studente il numero di tentativi sostenuti per ogni esame, stampando anche il voto massimo. Successivamente, filtrare i tentativi con voto minimo 18.
+7. BONUS: Selezionare per ogni studente il numero di tentativi sostenuti per ogni esame, stampando anche il voto massimo. Successivamente, filtrare i tentativi con voto minimo 18.
+
+
+    SELECT COUNT(*) 
+    `students`.`id` AS `id_studente`, 
+    `students`.`name` AS `nome_studente`,
+     `students`.`surname` AS `cognome_studente`,
+
+     MAX( `exam_student` .`vote`) AS `voto_massimo`
+
+
+    FROM `students`
+
+    INNER JOIN `exam_student`
+
+    ON `students`.`id`=`exam_student`.`students_id`
+
+    INNER JOIN `exam`
+
+    ON `exam_students`.`exam_id` = `exam`.`id`
+
+    INNER JOIN `courses`
+
+    ON `courses`.`id` = `exams`.`course.id`
+
+    <!-- non basta raggruppare per studente perchè uno studente può aver sostuenuto più volte un esame per diverse materie -->
+    GROUP BY `students` . `id`, `courses` . `id` 
+
+    WHERE MAX (`exam_student` . `vote`) >=18;
